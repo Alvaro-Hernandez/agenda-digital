@@ -1,6 +1,7 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
 import TabsNavigator from "./TabsNavigator";
 
 const Stack = createStackNavigator();
@@ -11,6 +12,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="Login"
         component={LoginPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterPage}
         options={{ headerShown: false }}
       />
       <Stack.Screen

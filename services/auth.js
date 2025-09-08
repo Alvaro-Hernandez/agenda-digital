@@ -1,3 +1,37 @@
+import { addDoc } from "firebase/firestore";
+// Registrar usuario en Firestore
+export const registrarUsuarioEnFirebase = async ({ correoElectronico, nombre, usuario, contrasena }) => {
+  try {
+    // Verificar si ya existe un usuario con ese correo o usuario
+    let q = query(
+      collection(db, "Usuarios"),
+      where("correoElectronico", "==", correoElectronico)
+    );
+    let querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return { success: false, message: "El correo ya está registrado." };
+    }
+    q = query(
+      collection(db, "Usuarios"),
+      where("usuario", "==", usuario)
+    );
+    querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return { success: false, message: "El usuario ya está registrado." };
+    }
+    // Crear usuario
+    await addDoc(collection(db, "Usuarios"), {
+      correoElectronico,
+      nombre,
+      usuario,
+      contrasena,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    return { success: false, message: "Error al registrar usuario." };
+  }
+};
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "./Firebase";
 

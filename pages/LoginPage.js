@@ -80,6 +80,13 @@ const LoginPage = ({ navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Iniciar Sesión</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.linkContainer}
+        onPress={() => navigation.navigate("Register")}
+      >
+        <Text style={styles.linkText}>¿No tienes cuenta? Regístrate</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };
@@ -150,6 +157,17 @@ const styles = StyleSheet.create({
     fontFamily: "SourGummy",
     color: "#ffffff",
     fontSize: 16,
+  },
+
+  linkContainer: {
+    marginTop: 15,
+  },
+  linkText: {
+    color: "#0984e3",
+    fontFamily: "SourGummy",
+    fontSize: 15,
+    textAlign: "center",
+    textDecorationLine: "underline",
   },
 });
 
