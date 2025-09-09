@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRoute } from "@react-navigation/native";
 
 const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
 
@@ -10,6 +10,8 @@ const HomePage = () => {
     const navigation = useNavigation();
     const scale1 = React.useRef(new Animated.Value(1)).current;
     const scale2 = React.useRef(new Animated.Value(1)).current;
+    const route = useRoute();
+    const { user } = route.params || {};
 
     const animateIcon = (scaleRef) => {
         Animated.sequence([
@@ -23,7 +25,7 @@ const HomePage = () => {
             {/* Header Section */}
             <View style={styles.headerContainer}>
                 <View style={styles.welcomeSection}>
-                    <Text style={styles.greeting}>¡Hola estudiante! 👋</Text>
+                    <Text style={styles.greeting}>¡Hola, {user ?? "Invitado"} ! 👋</Text>
                     <Text style={styles.title}>EduPlanner</Text>
                     <Text style={styles.subtitle}>Tu compañero perfecto para el éxito académico</Text>
                 </View>

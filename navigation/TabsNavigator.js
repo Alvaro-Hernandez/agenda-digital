@@ -5,7 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator();
 
-const TabsNavigator = () => {
+const TabsNavigator = ({ route }) => {
+  const user = route.params?.user;
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,7 +33,7 @@ const TabsNavigator = () => {
       })}
     >
       {/* Tabs principales */}
-      <Tab.Screen name="Inicio" component={HomePage} />
+      <Tab.Screen name="Inicio" component={HomePage} initialParams={{ user }} />
       {/* <Tab.Screen name="Profile" component={ProfilePage} />
       <Tab.Screen name="Settings" component={SettingsPage} /> */}
     </Tab.Navigator>

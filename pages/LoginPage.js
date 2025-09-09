@@ -22,7 +22,7 @@ const LoginPage = ({ navigation }) => {
 
     if (result.success) {
       Alert.alert("Bienvenido", `Hola, ${result.user.nombre}`);
-      navigation.navigate("Main");
+      navigation.navigate("Main", { user: result.user.nombre });
     } else {
       Alert.alert("Error", result.message);
     }

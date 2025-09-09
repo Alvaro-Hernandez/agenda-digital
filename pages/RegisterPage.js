@@ -15,11 +15,12 @@ import Icon from "react-native-vector-icons/Ionicons";
 const RegisterPage = ({ navigation }) => {
 	const [email, setEmail] = React.useState("");
 	const [username, setUsername] = React.useState("");
+	const [name, setNombreCompleto] = React.useState("");
 	const [password, setPassword] = React.useState("");
 	const [confirmPassword, setConfirmPassword] = React.useState("");
 
 	const handleRegister = async () => {
-		if (!email || !username || !password || !confirmPassword) {
+		if (!email || !name || !username || !password || !confirmPassword) {
 			Alert.alert("Error", "Por favor, completa todos los campos.");
 			return;
 		}
@@ -32,7 +33,7 @@ const RegisterPage = ({ navigation }) => {
 				const { registrarUsuarioEnFirebase } = require("../services/auth");
 				const result = await registrarUsuarioEnFirebase({
 					correoElectronico: email,
-					nombre: username, // Puedes cambiar esto si quieres un campo de nombre real
+					nombre: name,
 					usuario: username,
 					contrasena: password,
 				});
@@ -69,6 +70,16 @@ const RegisterPage = ({ navigation }) => {
 					keyboardType="email-address"
 					value={email}
 					onChangeText={setEmail}
+				/>
+			</View>
+			<View style={styles.inputContainer}>
+				<Icon name="person-outline" size={24} color="#636e72" style={styles.icon} />
+				<TextInput
+					style={styles.input}
+					placeholder="Nombre Completo"
+					placeholderTextColor="#aaa"
+					value={name}
+					onChangeText={setNombreCompleto}
 				/>
 			</View>
 			<View style={styles.inputContainer}>
