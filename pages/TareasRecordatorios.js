@@ -10,6 +10,7 @@ import {
   Alert,
   Switch,
   FlatList,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -23,6 +24,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../services/Firebase";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const TareasRecordatorios = ({ navigation }) => {
   const [tareas, setTareas] = useState([]);
@@ -31,6 +33,18 @@ const TareasRecordatorios = ({ navigation }) => {
   const [modalType, setModalType] = useState("tarea"); // 'tarea' o 'recordatorio'
   const [editingItem, setEditingItem] = useState(null);
   const [activeTab, setActiveTab] = useState("tareas"); // 'tareas', 'recordatorios', 'completadas'
+
+  // Tarea
+  const [showDatePickerTarea, setShowDatePickerTarea] = useState(false);
+  const [showTimePickerTarea, setShowTimePickerTarea] = useState(false);
+  const [tempDateTarea, setTempDateTarea] = useState(new Date());
+  const [tempTimeTarea, setTempTimeTarea] = useState(new Date());
+
+  // Recordatorio
+  const [showDatePickerRec, setShowDatePickerRec] = useState(false);
+  const [showTimePickerRec, setShowTimePickerRec] = useState(false);
+  const [tempDateRec, setTempDateRec] = useState(new Date());
+  const [tempTimeRec, setTempTimeRec] = useState(new Date());
 
   // Estados para formularios
   const [tareaForm, setTareaForm] = useState({
@@ -93,6 +107,41 @@ const TareasRecordatorios = ({ navigation }) => {
     { key: "semanal", label: "Semanal" },
     { key: "mensual", label: "Mensual" },
   ];
+
+  // "2025-09-09" -> Date local
+  const parseYMDToDate = (ymd = "") => {
+    if (!ymd) return new Date();
+    const [y, m, d] = ymd.split("-").map(Number);
+    const dt = new Date();
+    dt.setFullYear(y || dt.getFullYear(), (m || 1) - 1, d || 1);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  };
+
+  // Date -> "YYYY-MM-DD"
+  const formatDateYMD = (date = new Date()) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  // "HH:MM" (24h) -> "hh:mm AM/PM" (UI)
+  const hhmm24To12 = (hhmm = "00:00") => {
+    const [h, m] = hhmm.split(":").map(Number);
+    const suf = h >= 12 ? "PM" : "AM";
+    const h12 = ((h + 11) % 12) + 1;
+    return `${String(h12).padStart(2, "0")}:${String(m || 0).padStart(
+      2,
+      "0"
+    )} ${suf}`;
+  };
+
+  // Date -> "HH:MM" (24h) para guardar
+  const toHHMM = (date = new Date()) =>
+    `${String(date.getHours()).padStart(2, "0")}:${String(
+      date.getMinutes()
+    ).padStart(2, "0")}`;
 
   useEffect(() => {
     cargarDatos();
@@ -354,7 +403,8 @@ const TareasRecordatorios = ({ navigation }) => {
             <Ionicons name="calendar-outline" size={14} color="#636e72" />
             <Text style={styles.fechaText}>
               {new Date(tarea.fechaVencimiento).toLocaleDateString("es-ES")}
-              {tarea.horaVencimiento && ` - ${tarea.horaVencimiento}`}
+              {tarea.horaVencimiento &&
+                ` - ${hhmm24To12(tarea.horaVencimiento)}`}
             </Text>
           </View>
           <View style={[styles.diasBadge, { backgroundColor: diasInfo.color }]}>
@@ -395,7 +445,7 @@ const TareasRecordatorios = ({ navigation }) => {
                     "es-ES"
                   )}
                   {recordatorio.horaRecordatorio &&
-                    ` - ${recordatorio.horaRecordatorio}`}
+                    ` - ${hhmm24To12(recordatorio.horaRecordatorio)}`}
                 </Text>
               </View>
               {recordatorio.repetir && (
@@ -765,27 +815,99 @@ const TareasRecordatorios = ({ navigation }) => {
                 </View>
 
                 <View style={styles.inputRow}>
+                  {/* Fecha */}
                   <View style={styles.inputHalf}>
                     <Text style={styles.inputLabel}>Fecha Vencimiento *</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={tareaForm.fechaVencimiento}
-                      onChangeText={(text) =>
-                        setTareaForm({ ...tareaForm, fechaVencimiento: text })
-                      }
-                      placeholder="YYYY-MM-DD"
-                    />
+                    <TouchableOpacity
+                      style={[styles.textInput, { justifyContent: "center" }]}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setTempDateTarea(
+                          parseYMDToDate(tareaForm.fechaVencimiento)
+                        );
+                        setShowDatePickerTarea(true);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SourGummy",
+                          fontSize: 16,
+                          color: "#2d3436",
+                        }}
+                      >
+                        {tareaForm.fechaVencimiento || "Seleccionar fecha"}
+                      </Text>
+                    </TouchableOpacity>
+                    {showDatePickerTarea && (
+                      <DateTimePicker
+                        value={tempDateTarea}
+                        mode="date"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(event, selected) => {
+                          if (Platform.OS === "android")
+                            setShowDatePickerTarea(false);
+                          if (selected) {
+                            setTempDateTarea(selected);
+                            setTareaForm((p) => ({
+                              ...p,
+                              fechaVencimiento: formatDateYMD(selected),
+                            }));
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                   <View style={styles.inputHalf}>
                     <Text style={styles.inputLabel}>Hora</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={tareaForm.horaVencimiento}
-                      onChangeText={(text) =>
-                        setTareaForm({ ...tareaForm, horaVencimiento: text })
-                      }
-                      placeholder="HH:MM"
-                    />
+                    <TouchableOpacity
+                      style={[styles.textInput, { justifyContent: "center" }]}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        const base = tareaForm.horaVencimiento
+                          ? (() => {
+                              const [h, m] = tareaForm.horaVencimiento
+                                .split(":")
+                                .map(Number);
+                              const d = new Date();
+                              d.setHours(h || 0, m || 0, 0, 0);
+                              return d;
+                            })()
+                          : new Date();
+                        setTempTimeTarea(base);
+                        setShowTimePickerTarea(true);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SourGummy",
+                          fontSize: 16,
+                          color: "#2d3436",
+                        }}
+                      >
+                        {tareaForm.horaVencimiento
+                          ? hhmm24To12(tareaForm.horaVencimiento)
+                          : "Seleccionar hora"}
+                      </Text>
+                    </TouchableOpacity>
+                    {showTimePickerTarea && (
+                      <DateTimePicker
+                        value={tempTimeTarea}
+                        mode="time"
+                        is24Hour={false}
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(event, selected) => {
+                          if (Platform.OS === "android")
+                            setShowTimePickerTarea(false);
+                          if (selected) {
+                            setTempTimeTarea(selected);
+                            setTareaForm((p) => ({
+                              ...p,
+                              horaVencimiento: toHHMM(selected),
+                            }));
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                 </View>
 
@@ -831,33 +953,100 @@ const TareasRecordatorios = ({ navigation }) => {
                 </View>
 
                 <View style={styles.inputRow}>
+                  {/* Fecha */}
                   <View style={styles.inputHalf}>
                     <Text style={styles.inputLabel}>Fecha *</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={recordatorioForm.fechaRecordatorio}
-                      onChangeText={(text) =>
-                        setRecordatorioForm({
-                          ...recordatorioForm,
-                          fechaRecordatorio: text,
-                        })
-                      }
-                      placeholder="YYYY-MM-DD"
-                    />
+                    <TouchableOpacity
+                      style={[styles.textInput, { justifyContent: "center" }]}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setTempDateRec(
+                          parseYMDToDate(recordatorioForm.fechaRecordatorio)
+                        );
+                        setShowDatePickerRec(true);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SourGummy",
+                          fontSize: 16,
+                          color: "#2d3436",
+                        }}
+                      >
+                        {recordatorioForm.fechaRecordatorio ||
+                          "Seleccionar fecha"}
+                      </Text>
+                    </TouchableOpacity>
+                    {showDatePickerRec && (
+                      <DateTimePicker
+                        value={tempDateRec}
+                        mode="date"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(event, selected) => {
+                          if (Platform.OS === "android")
+                            setShowDatePickerRec(false);
+                          if (selected) {
+                            setTempDateRec(selected);
+                            setRecordatorioForm((p) => ({
+                              ...p,
+                              fechaRecordatorio: formatDateYMD(selected),
+                            }));
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                   <View style={styles.inputHalf}>
                     <Text style={styles.inputLabel}>Hora</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={recordatorioForm.horaRecordatorio}
-                      onChangeText={(text) =>
-                        setRecordatorioForm({
-                          ...recordatorioForm,
-                          horaRecordatorio: text,
-                        })
-                      }
-                      placeholder="HH:MM"
-                    />
+                    <TouchableOpacity
+                      style={[styles.textInput, { justifyContent: "center" }]}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        const base = recordatorioForm.horaRecordatorio
+                          ? (() => {
+                              const [h, m] = recordatorioForm.horaRecordatorio
+                                .split(":")
+                                .map(Number);
+                              const d = new Date();
+                              d.setHours(h || 0, m || 0, 0, 0);
+                              return d;
+                            })()
+                          : new Date();
+                        setTempTimeRec(base);
+                        setShowTimePickerRec(true);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SourGummy",
+                          fontSize: 16,
+                          color: "#2d3436",
+                        }}
+                      >
+                        {recordatorioForm.horaRecordatorio
+                          ? hhmm24To12(recordatorioForm.horaRecordatorio)
+                          : "Seleccionar hora"}
+                      </Text>
+                    </TouchableOpacity>
+                    {showTimePickerRec && (
+                      <DateTimePicker
+                        value={tempTimeRec}
+                        mode="time"
+                        is24Hour={false}
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(event, selected) => {
+                          if (Platform.OS === "android")
+                            setShowTimePickerRec(false);
+                          if (selected) {
+                            setTempTimeRec(selected);
+                            setRecordatorioForm((p) => ({
+                              ...p,
+                              horaRecordatorio: toHHMM(selected),
+                            }));
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                 </View>
 
