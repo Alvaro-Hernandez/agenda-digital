@@ -39,6 +39,7 @@ const TareasRecordatorios = ({ navigation }) => {
   const [showTimePickerTarea, setShowTimePickerTarea] = useState(false);
   const [tempDateTarea, setTempDateTarea] = useState(new Date());
   const [tempTimeTarea, setTempTimeTarea] = useState(new Date());
+  const [materias, setMaterias] = useState([]);
 
   // Recordatorio
   const [showDatePickerRec, setShowDatePickerRec] = useState(false);
@@ -160,6 +161,14 @@ const TareasRecordatorios = ({ navigation }) => {
         ...doc.data(),
       }));
       setTareas(tareasData);
+
+      // Cargar materias
+      const materiasSnapshot = await getDocs(collection(db, "materias"));
+      const materiasData = materiasSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMaterias(materiasData);
 
       // Cargar recordatorios
       const recordatoriosQuery = query(
@@ -913,14 +922,33 @@ const TareasRecordatorios = ({ navigation }) => {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Materia/Asignatura</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={tareaForm.materia}
-                    onChangeText={(text) =>
-                      setTareaForm({ ...tareaForm, materia: text })
-                    }
-                    placeholder="Nombre de la materia"
-                  />
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.optionsRow}>
+                      {materias.map((m) => (
+                        <TouchableOpacity
+                          key={m.id}
+                          style={[
+                            styles.optionButton,
+                            tareaForm.materia === m.nombre &&
+                              styles.optionButtonSelected,
+                          ]}
+                          onPress={() =>
+                            setTareaForm({ ...tareaForm, materia: m.nombre })
+                          }
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              tareaForm.materia === m.nombre &&
+                                styles.optionTextSelected,
+                            ]}
+                          >
+                            {m.nombre}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
                 </View>
 
                 <View style={styles.inputGroup}>
