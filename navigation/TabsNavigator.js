@@ -2,6 +2,8 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomePage from "../pages/HomePage.js";
 import { Ionicons } from "@expo/vector-icons";
+import CalendarioDigital from "../pages/CalendarioDigital.js";
+import TareasRecordatorios from "../pages/TareasRecordatorios.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -16,10 +18,10 @@ const TabsNavigator = ({ route }) => {
 
           if (route.name === "Inicio") {
             iconName = "home-outline";
-          } else if (route.name === "Estadísticas") {
-            iconName = "analytics-outline";
-          } else if (route.name === "Settings") {
-            iconName = "settings-outline";
+          } else if (route.name === "Mis Tareas") {
+            iconName = "document-text-outline";
+          } else if (route.name === "Calendario") {
+            iconName = "calendar-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -34,8 +36,8 @@ const TabsNavigator = ({ route }) => {
     >
       {/* Tabs principales */}
       <Tab.Screen name="Inicio" component={HomePage} initialParams={{ user }} />
-      {/* <Tab.Screen name="Profile" component={ProfilePage} />
-      <Tab.Screen name="Settings" component={SettingsPage} /> */}
+      <Tab.Screen name="Calendario" component={CalendarioDigital} />
+      <Tab.Screen name="Mis Tareas" component={TareasRecordatorios} />
     </Tab.Navigator>
   );
 };
